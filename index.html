@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mini ChessTree</title>
+  <link rel="stylesheet" href="https://unpkg.com/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 1rem;
+      background: #f4f4f4;
+      text-align: center;
+    }
+    #board {
+      width: 350px;
+      margin: 1rem auto;
+    }
+    #moves {
+      max-width: 350px;
+      margin: 1rem auto;
+      background: #fff;
+      padding: 1rem;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      text-align: left;
+    }
+    button {
+      display: block;
+      margin: 1rem auto;
+      padding: 0.5rem 1rem;
+      font-size: 1rem;
+    }
+    #opening-name {
+      margin-top: 1rem;
+      font-weight: bold;
+      color: #333;
+    }
+  </style>
+</head>
+<body>
+  <h2>Mini ChessTree</h2>
+  <div id="board"></div>
+  <div id="opening-name">Opening: -</div>
+  <div id="moves">
+    <strong>Moves:</strong>
+    <div id="move-list"></div>
+  </div>
+  <button onclick="downloadPGN()">Download PGN</button>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.13.4/chess.min.js"></script>
+  <script src="https://unpkg.com/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"></script>
+  <script>
+    const game = new Chess();
+
+    const board = Chessboard('board', {
+      draggable: true,
+      position: 'start',
+      onDrop: (source, target) => {
+        const move = game.move({ from: source, to: target, promotion: 'q' });
+        if (!move) return 'snapback';
+        updateMoves();
+        identifyOpening();
+      }
+    });
+
+    const openings = [
+      { name: "King's Pawn Game", moves: "e4" },
+      { name: "King's Knight Opening", moves: "e4 e5 Nf3" },
+      { name: "Italian Game", moves: "e4 e5 Nf3 Nc6 Bc4" },
+      { name: "Ruy Lopez", moves: "e4 e5 Nf3 Nc6 Bb5" },
+      { name: "Berlin Defense", moves: "e4 e5 Nf3 Nc6 Bb5 Nf6" },
+      { name: "Berlin Defense: Open Variation", moves: "e4 e5 Nf3 Nc6 Bb5 Nf6 O-O Nxe4" },
+      { name: "Ruy Lopez: Closed", moves: "e4 e5 Nf3 Nc6 Bb5 a6 Ba4 Nf6 O-O Be7" },
+      { name: "Queen's Pawn Game", moves: "d4" },
+      { name: "Queen's Gambit Declined", moves: "d4 d5 c4 e6 Nc3 Nf6" },
+      { name: "Catalan Opening", moves: "d4 Nf6 c4 e6 g3" }
+    ];
+
+    function updateMoves() {
+      document.getElementById('move-list').innerHTML = game.pgn().replace(/\n/g, '<br>');
+    }
+
+    function downloadPGN() {
+      const blob = new Blob([game.pgn()], { type: 'text/plain' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'game.pgn';
+      link.click();
+    }
+
+    function identifyOpening() {
+      const currentMoves = game.history().join(" ");
+      let found = "-";
+      for (const opening of openings) {
+        if (currentMoves.startsWith(opening.moves)) {
+          found = opening.name;
+        }
+      }
+      document.getElementById('opening-name').textContent = `Opening: ${found}`;
+    }
+  </script>
+</body>
+</html>
